@@ -2,23 +2,41 @@ name: gsheet.action test
 on: push
 
 jobs:
-  fetch:
+  get-scores:
     runs-on: ubuntu-latest
     steps:
+      - shell: bash
+        run: |
+          expr "[["40", "55", "21", "33", "11"], ["52", "21", "54", "11", "39"], ["52", "21", "54", "11", "69"]]" > scores.json
+      - name: Upload scores
+        uses: actions/upload-artifact@v2
+        with:
+          name: scores
+          path: scores.json
+  add-to-sheet:
+    runs-on: ubuntu-latest
+    needs: get-scores
+    steps:
+      - name: Download scores
+        uses: actions/download-artifact@v2
+        with:
+          name: scores
+      - id: set_var
+        run: | 
+          content=`cat scores.json`
+          echo "::set-output name=scores::$content"
+          echo "$content"
+      - run: |
+          echo ${{steps.set_var.outputs.scores}}
       - id: 'update_worksheet'
-        uses: jroehl/gsheet.action@v1.0.0 # you can specify '@release' to always have the latest changes
+        uses: jroehl/gsheet.action@v1.0.0
         with:
           spreadsheetId: 1NpSCP40KtCK8ClPH8WzE__VYZm0v4sd_2-BpZcPSRV4
           commands: | # list of commands, specified as a valid JSON string
             [
-              { "command": "addWorksheet", "args": { "worksheetTitle": "gw1" }},
-              { "command": "getData", "args": { "range": "'test sheet'!A2:B3" } }
+              { "command": "getWorksheet", "args": { "worksheetTitle": "Sheet1" }},
+              { "command": "updateData", "args": { "data": ${{steps.set_var.outputs.scores}}, "minRow": "2", "minCol": "2"}}
             ] 
         env:
           GSHEET_CLIENT_EMAIL: ${{ secrets.GSHEET_CLIENT_EMAIL }}
           GSHEET_PRIVATE_KEY: ${{ secrets.GSHEET_PRIVATE_KEY }}
-      - name: dump results
-        env:
-          #  the output of the action can be found in ${{ steps.update_worksheet.outputs.results }}
-          RESULTS: ${{ steps.update_worksheet.outputs.results }}
-        run: echo "$RESULTS" | jq
