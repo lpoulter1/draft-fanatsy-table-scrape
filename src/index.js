@@ -1,7 +1,5 @@
 const puppeteer = require('puppeteer');
-
-
-
+const fs = require('fs');
 
 (async (gw) => {
   const gwUrl = `https://draftfantasyfootball.co.uk/league/started/kyw4GMkcbi626gKjP/team/2sseQeqM8g8DQtHJz/gameweek/${gw}`;
@@ -10,7 +8,7 @@ const puppeteer = require('puppeteer');
   });
   const page = await browser.newPage();
   await page.goto(gwUrl,  {waitUntil: 'networkidle2'});
-  // await new Promise(r => setTimeout(r, 10000));
+  await page.waitForSelector('table');
 
   const table = await page.evaluate(() => {
     const table = [...document.querySelectorAll('table')].find((table) => {
@@ -24,9 +22,6 @@ const puppeteer = require('puppeteer');
       return [...table.rows].map(row => [...row.cells].map(cell => cell.textContent))
   });
 
-  console.log('table:', table);
-
-  await page.screenshot({path: `${gw}.png`});
-
   await browser.close();
-})(1);
+  fs.writeFileSync(`${gw}.json`, JSON.stringify(table));
+})(38);
