@@ -24,4 +24,4 @@ const fs = require('fs');
 
   await browser.close();
   fs.writeFileSync(`${gw}.json`, JSON.stringify(table));
-})(38);
+})(1);
