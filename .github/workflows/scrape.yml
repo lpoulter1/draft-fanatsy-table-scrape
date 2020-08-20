@@ -1,5 +1,8 @@
 name: gsheet.action test
-on: push
+on:
+  push:
+    branches-ignore:
+      - '**'
 
 jobs:
   add-to-sheet:
