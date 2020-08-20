@@ -29,6 +29,14 @@ async function getPlayers() {
 (async function() {
   const res = await getPlayers();
   const { data } = await res.json();
-  
-  fs.writeFileSync(path.join(__dirname,"player-data","players-latest.json"), JSON.stringify(data.players));
+
+  try {
+    fs.writeFileSync(
+      path.join(__dirname, "player-data", "players-latest.json"),
+      JSON.stringify(data.players)
+    );
+    console.log("Player json updated");
+  } catch (e) {
+    console.error(`Updating player json failed: `, e);
+  }
 })();
